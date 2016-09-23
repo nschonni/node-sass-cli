@@ -1,0 +1,26 @@
+{
+  "name": "node-sass-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nschonni/node-sass-cli.git"
+  },
+  "keywords": [
+    "node-sass",
+    "cli"
+  ],
+  "author": "Nick Schonning <nschonni@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nschonni/node-sass-cli/issues"
+  },
+  "homepage": "https://github.com/nschonni/node-sass-cli#readme",
+  "dependencies": {
+    "node-sass": "^3.10.0"
+  }
+}
