@@ -33,20 +33,20 @@ var nopt = require('nopt')
     , 'quiet': Boolean
   }
   , shortHands = {
-    I: 'load-path'
-    , r: 'require'
-    , t: 'style'
-    , '?': 'help'
-    , h: 'help'
-    , f: 'force'
-    , s: 'stdin'
-    , E: 'default-encoding'
-    , g: 'debug-info'
-    , l: 'line-numbers'
-    , i: 'interactive'
-    , c: 'check'
-    , C: 'no-cache'
-    , q: 'quiet'
+    I: '--load-path'
+    , r: '--require'
+    , t: '--style'
+    , '?': ['--help']
+    , h: ['--help']
+    , f: '--force'
+    , s: '--stdin'
+    , E: '--default-encoding'
+    , g: '--debug-info'
+    , l: '--line-numbers'
+    , i: '--interactive'
+    , c: '--check'
+    , C: '--no-cache'
+    , q: '--quiet'
   }
   , parsed = nopt(knownOpts, shortHands, process.argv, 2);
 
