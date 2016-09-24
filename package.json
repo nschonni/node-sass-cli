@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/.bin/mocha test"
+    "test": "npm run lint && npm run mocha",
+    "lint": "node_modules/.bin/eslint .",
+    "mocha": "node_modules/.bin/mocha test"
   },
   "repository": {
     "type": "git",
@@ -25,6 +27,7 @@
     "nopt": "^3.0.6"
   },
   "devDependencies": {
+    "eslint": "^3.6.0",
     "mocha": "^3.0.2"
   }
 }
