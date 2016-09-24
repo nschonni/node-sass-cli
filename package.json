@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "sass": "index.js"
+  },
   "scripts": {
     "test": "npm run lint && npm run mocha",
     "lint": "node_modules/.bin/eslint .",
