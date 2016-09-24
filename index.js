@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var nopt = require('nopt')
+  , sass = require('node-sass')
   , path = require('path')
   , knownOpts = {
     'load-path': [Array, path]
@@ -104,4 +105,10 @@ if (parsed.help) {
       '    -q, --quiet                      Silence warnings and status messages during compilation.'
     ].join('\n')
   );
+  process.exit(0);
+}
+
+if (parsed.version) {
+  console.log(sass.info);
+  process.exit(0);
 }
