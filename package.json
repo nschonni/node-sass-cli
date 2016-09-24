@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/nschonni/node-sass-cli#readme",
   "dependencies": {
-    "node-sass": "^3.10.0"
+    "node-sass": "^3.10.0",
+    "nopt": "^3.0.6"
   }
 }
