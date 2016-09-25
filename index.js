@@ -17,7 +17,6 @@ var nopt = require('nopt')
     , 'force': Boolean
     , 'stop-on-error': Boolean
     , 'scss': Boolean
-    , 'syntax': ['scss', 'sass']
     , 'sourcemap': ['auto', 'file', 'inline', 'none']
     , 'stdin': Boolean
     , 'default-encoding': String
@@ -139,6 +138,13 @@ if (parsed.argv.remain) {
       options.outFile = parsed.argv.remain[1];
       options.file = parsed.argv.remain[0];
   }
+}
+
+// Handle syntax options
+if (parsed.scss || /\.scss$/.test(options.file)) {
+  options.indentedSyntax = false;
+} else {
+  options.indentedSyntax = true;
 }
 
 sass.render(options, function(err, result) {
