@@ -8,7 +8,7 @@ var nopt = require('nopt')
     'load-path': [Array, path]
     , 'require': [Array, path]
     , 'compass': Boolean
-    , 'style': [ 'nested', 'compressed', 'expanded' ]
+    , 'style': [ 'nested', 'compact', 'compressed', 'expanded' ]
     , 'help': Boolean
     , 'version': Boolean
     , 'watch': String
@@ -145,6 +145,12 @@ if (parsed.scss || /\.scss$/.test(options.file)) {
   options.indentedSyntax = false;
 } else {
   options.indentedSyntax = true;
+}
+
+if (parsed.style) {
+  options.outputStyle = parsed.style;
+} else {
+  options.outputStyle = 'nested';
 }
 
 sass.render(options, function(err, result) {
