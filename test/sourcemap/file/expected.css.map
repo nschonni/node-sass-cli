@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,MAAO;EACL,OAAO,EAAE,GAAG",
+"sources": ["file:///__dirname/sourcemap/file/input.scss"],
+"names": [],
+"file": "expected.css"
+}

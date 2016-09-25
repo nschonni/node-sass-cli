@@ -1,0 +1,8 @@
+{
+"version": 3,
+"mappings": "AAAA,MAAO;EACL,OAAO,EAAE,GAAG",
+"sources": ["test/sourcemap/inline/input.scss"],
+"sourcesContent": [".basic {\n  padding: 1px;\n}\n"],
+"names": [],
+"file": "expected.css"
+}

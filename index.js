@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var nopt = require('nopt')
+  , fs = require('fs')
   , os = require('os')
   , sass = require('node-sass')
   , path = require('path')
@@ -126,6 +127,7 @@ if (parsed.argv.remain) {
   switch (parsed.argv.remain.length) {
     case 2:
       options.outFile = parsed.argv.remain[1];
+      options.output = options.outFile;
       // falls through
     case 1:
       options.file = parsed.argv.remain[0];
@@ -153,11 +155,44 @@ if (parsed.style) {
   options.outputStyle = 'nested';
 }
 
+if (parsed.sourcemap === 'none') {
+  options.sourceMap = false;
+} else if (options.output) {
+  options.sourceMap = options.output + '.map';
+}
+
+if (parsed.sourcemap === 'auto') {
+  options.sourceMapRoot = '';
+} else if (parsed.sourcemap === 'file') {
+  options.sourceMapRoot = path.basename(options.outFile);
+} else if (parsed.sourcemap === 'inline') {
+  options.sourceMapContents = true;
+}
+
+// console.log(options);
+
 sass.render(options, function(err, result) {
   if (err) {
     console.error(err);
     process.exit(2);
   }
-  // Since we output to the console, an extra trailing newline needs to get trimmed
-  console.log(result.css.toString('utf8').replace(/\n$/, ''));
+
+  if (options.outFile) {
+    fs.writeFile(options.outFile, result.css, function(err) {
+      if (err) {
+        console.log(err);
+      } else if (parsed.sourcemap !== 'none' && result.map) {
+        fs.writeFile(options.sourceMap, result.map, function(err) {
+          if (err) {
+            console.log(err);
+          }
+          return;
+        });
+      }
+      return;
+    });
+  } else {
+    // Since we output to the console, an extra trailing newline needs to get trimmed
+    console.log(result.css.toString('utf8').replace(/\n$/, ''));
+  }
 });
