@@ -216,3 +216,6 @@ pip-log.txt
 .mr.developer.cfg
 
 node_modules
+
+# Ignore Ruby Sass cache folders
+.sass-cache

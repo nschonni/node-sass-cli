@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var nopt = require('nopt')
+  , os = require('os')
   , sass = require('node-sass')
   , path = require('path')
   , knownOpts = {
@@ -112,3 +113,39 @@ if (parsed.version) {
   console.log(sass.info);
   process.exit(0);
 }
+
+var options = {};
+
+if (!parsed['unix-newlines'] && os.EOL === '\r\n') {
+  options.linefeed = 'crlf';
+} else {
+  options.linefeed = 'lf';
+}
+
+// Handle the rest of the unparsed options
+if (parsed.argv.remain) {
+  switch (parsed.argv.remain.length) {
+    case 2:
+      options.outFile = parsed.argv.remain[1];
+      // falls through
+    case 1:
+      options.file = parsed.argv.remain[0];
+      break;
+    case 0:
+      // Nothing to parse unless we're using stdin
+      break;
+    default:
+      console.warn('Only 2 parameters, an [INPUT] [OUTPUT] are parsed after the [options]. Found:\n', parsed.argv.remain);
+      options.outFile = parsed.argv.remain[1];
+      options.file = parsed.argv.remain[0];
+  }
+}
+
+sass.render(options, function(err, result) {
+  if (err) {
+    console.error(err);
+    process.exit(2);
+  }
+  // Since we output to the console, an extra trailing newline needs to get trimmed
+  console.log(result.css.toString('utf8').replace(/\n$/, ''));
+});
