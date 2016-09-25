@@ -50,7 +50,7 @@ var nopt = require('nopt')
   }
   , parsed = nopt(knownOpts, shortHands, process.argv, 2);
 
-if (parsed.help) {
+if (parsed.help || process.argv.length === 2) {
   console.log(['Usage: sass [options] [INPUT] [OUTPUT]',
       '\n',
       'Description:',

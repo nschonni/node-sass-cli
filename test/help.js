@@ -35,4 +35,14 @@ describe('help', function() {
       done();
     });
   });
+
+  it('should show if no other options are passed', function(done) {
+    var result = spawn('node', [cli]);
+
+    result.stdout.setEncoding('utf8');
+    result.stdout.once('data', function(data) {
+      assert(usage.test(data.trim()));
+      done();
+    });
+  });
 });
