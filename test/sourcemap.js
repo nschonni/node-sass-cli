@@ -1,21 +1,33 @@
 var assert = require('assert')
   , fs = require('fs')
+  , mkdirp = require('mkdirp')
   , path = require('path')
   , spawn = require('child_process').spawn
   , rimraf = require('rimraf');
 
-describe('sourcemap', function() {
+// Notes:
+//  - The libsass inserts an extra line after the sourceMappingURL line
+//  - There is an order difference for the souremap
+//  - The expected files and maps were generated using Ruby Sass 3.4.22
+describe.only('sourcemap', function() {
   var cli = path.join(__dirname, '..', 'index.js')
     , tmp = path.join(__dirname, 'sourcemap', 'tmp')
     , outputPath = path.join(tmp, 'expected.css');
 
-  beforeEach(function() {
-    rimraf.sync(tmp);
-    fs.mkdirSync(tmp);
+  before(function(done) {
+    mkdirp(tmp, done);
+  });
+  
+  after(function(done) {
+    rimraf(tmp, done);
   });
 
-  afterEach(function() {
-    // rimraf.sync(tmp);
+  beforeEach(function(done) {
+    rimraf(tmp + '/*', done);
+  });
+
+  afterEach(function(done) {
+    rimraf(tmp + '/*', done);
   });
 
   describe('auto', function() {
@@ -23,7 +35,7 @@ describe('sourcemap', function() {
       , expectedMapPath = path.join(__dirname, 'sourcemap', 'auto', 'expected.css.map')
       , inputPath = path.join(__dirname, 'sourcemap', 'tmp', 'input.scss')
       , originalPath = path.join(__dirname, 'sourcemap', 'auto', 'input.scss')
-      , expectedCSS, expectedMap;
+      , expectedCSS, expectedMapJSON;
 
     before(function(done) {
       fs.readFile(expectedCSSPath, 'utf8', function(err, data) {
@@ -35,27 +47,31 @@ describe('sourcemap', function() {
           if (err) {
             throw err;
           }
-          expectedMap = data;
-          fs.writeFile(inputPath, originalPath, function(err) {
+          expectedMapJSON = JSON.parse(data);
+          fs.readFile(originalPath, 'utf8', function(err, data) {
             if (err) {
               throw err;
             }
-            done();
+            fs.writeFile(inputPath, data, 'utf8', done);
           });
         });
       });
     });
 
-    it.only('(--sourcemap auto) compiles', function(done) {
+    it('(--sourcemap auto) compiles', function(done) {
       var result = spawn('node', [cli, '--sourcemap=auto', inputPath, outputPath]);
 
       result.once('close', function() {
         fs.readFile(outputPath, 'utf8', function(err, data) {
           // assert.equal(err, false, 'The CSS file should exist');
-          assert.equal(data, expectedCSS);
+          assert.equal(data, expectedCSS.trim());
           fs.readFile(outputPath + '.map', 'utf8', function(err, data) {
-            // assert.equal(err, undefined, 'The Map file should exist');
-            assert.equal(data, expectedMap);
+            var actualMapJSON = JSON.parse(data);
+            assert.equal(actualMapJSON.version, expectedMapJSON.version);
+            // assert.equal(actualMapJSON.mappings, expectedMapJSON.mappings);
+            assert.deepEqual(actualMapJSON.sources, expectedMapJSON.sources);
+            assert.deepEqual(actualMapJSON.names, expectedMapJSON.names);
+            assert.equal(actualMapJSON.file, expectedMapJSON.file);
             done();
           });
         });
@@ -67,11 +83,14 @@ describe('sourcemap', function() {
 
       result.once('close', function() {
         fs.readFile(outputPath, 'utf8', function(err, data) {
-          assert.equal(err, undefined, 'No errors reading CSS file');
-          assert.equal(data, expectedCSS);
+          assert.equal(data, expectedCSS.trim());
           fs.readFile(outputPath + '.map', 'utf8', function(err, data) {
-            assert.equal(err, undefined, 'No errors reading Map file');
-            assert.equal(data, expectedMap);
+            var actualMapJSON = JSON.parse(data);
+            assert.equal(actualMapJSON.version, expectedMapJSON.version);
+            // assert.equal(actualMapJSON.mappings, expectedMapJSON.mappings);
+            assert.deepEqual(actualMapJSON.sources, expectedMapJSON.sources);
+            assert.deepEqual(actualMapJSON.names, expectedMapJSON.names);
+            assert.equal(actualMapJSON.file, expectedMapJSON.file);
             done();
           });
         });
@@ -95,8 +114,9 @@ describe('sourcemap', function() {
   describe('file', function() {
     var expectedCSSPath = path.join(__dirname, 'sourcemap', 'file', 'expected.css')
       , expectedMapPath = path.join(__dirname, 'sourcemap', 'file', 'expected.css.map')
-      , inputPath = path.join(__dirname, 'sourcemap', 'file', 'input.scss')
-      , expectedCSS, expectedMap;
+      , inputPath = path.join(__dirname, 'sourcemap', 'tmp', 'input.scss')
+      , originalPath = path.join(__dirname, 'sourcemap', 'file', 'input.scss')
+      , expectedCSS, expectedMapJSON;
 
     before(function(done) {
       fs.readFile(expectedCSSPath, 'utf8', function(err, data) {
@@ -108,24 +128,31 @@ describe('sourcemap', function() {
           if (err) {
             throw err;
           }
-          expectedMap = data;
-          done();
+          expectedMapJSON = JSON.parse(data);
+          fs.readFile(originalPath, 'utf8', function(err, data) {
+            if (err) {
+              throw err;
+            }
+            fs.writeFile(inputPath, data, 'utf8', done);
+          });
         });
       });
     });
 
     it('(--sourcemap file) compiles', function(done) {
       var result = spawn('node', [cli, '--sourcemap', 'file', inputPath, outputPath]);
-
-      result.stdout.setEncoding('utf8');
-      result.stdout.once('data', function(data) {
-        assert.equal(data, expectedCSS);
-        fs.readFile(outputPath + '.map', 'utf8', function(err, data) {
-          if (err) {
-            throw err;
-          }
-          assert.equal(data, expectedMap);
-          done();
+      result.once('close', function() {
+        fs.readFile(outputPath, 'utf8', function(err, data) {
+          assert.equal(data, expectedCSS.trim());
+          fs.readFile(outputPath + '.map', 'utf8', function(err, data) {
+            var actualMapJSON = JSON.parse(data);
+            assert.equal(actualMapJSON.version, expectedMapJSON.version);
+            // assert.equal(actualMapJSON.mappings, expectedMapJSON.mappings);
+            assert.deepEqual(actualMapJSON.sources, expectedMapJSON.sources);
+            assert.deepEqual(actualMapJSON.names, expectedMapJSON.names);
+            assert.equal(actualMapJSON.file, expectedMapJSON.file);
+            done();
+          });
         });
       });
     });
@@ -133,10 +160,11 @@ describe('sourcemap', function() {
     it('(--sourcemap file) has a sourceMappingURL in the CSS', function(done) {
       var result = spawn('node', [cli, '--sourcemap', 'file', inputPath, outputPath]);
 
-      result.stdout.setEncoding('utf8');
-      result.stdout.once('data', function(data) {
-        assert.notEqual(data.indexOf('/*# sourceMappingURL='), -1);
-        done();
+      result.once('close', function() {
+        fs.readFile(outputPath, 'utf8', function(err, data) {
+          assert.notEqual(data.indexOf('/*# sourceMappingURL='), -1);
+          done();
+        });
       });
     });
   });
@@ -144,8 +172,9 @@ describe('sourcemap', function() {
   describe('inline', function() {
     var expectedCSSPath = path.join(__dirname, 'sourcemap', 'inline', 'expected.css')
       , expectedMapPath = path.join(__dirname, 'sourcemap', 'inline', 'expected.css.map')
-      , inputPath = path.join(__dirname, 'sourcemap', 'inline', 'input.scss')
-      , expectedCSS, expectedMap;
+      , inputPath = path.join(__dirname, 'sourcemap', 'tmp', 'input.scss')
+      , originalPath = path.join(__dirname, 'sourcemap', 'inline', 'input.scss')
+      , expectedCSS, expectedMapJSON;
 
     before(function(done) {
       fs.readFile(expectedCSSPath, 'utf8', function(err, data) {
@@ -157,8 +186,13 @@ describe('sourcemap', function() {
           if (err) {
             throw err;
           }
-          expectedMap = data;
-          done();
+          expectedMapJSON = JSON.parse(data);
+          fs.readFile(originalPath, 'utf8', function(err, data) {
+            if (err) {
+              throw err;
+            }
+            fs.writeFile(inputPath, data, 'utf8', done);
+          });
         });
       });
     });
@@ -166,15 +200,18 @@ describe('sourcemap', function() {
     it('(--sourcemap inline) compiles', function(done) {
       var result = spawn('node', [cli, '--sourcemap', 'inline', inputPath, outputPath]);
 
-      result.stdout.setEncoding('utf8');
-      result.stdout.once('data', function(data) {
-        assert.equal(data, expectedCSS);
-        fs.readFile(outputPath + '.map', 'utf8', function(err, data) {
-          if (err) {
-            throw err;
-          }
-          assert.equal(data, expectedMap);
-          done();
+      result.once('close', function() {
+        fs.readFile(outputPath, 'utf8', function(err, data) {
+          assert.equal(data, expectedCSS.trim());
+          fs.readFile(outputPath + '.map', 'utf8', function(err, data) {
+            var actualMapJSON = JSON.parse(data);
+            assert.equal(actualMapJSON.version, expectedMapJSON.version);
+            // assert.equal(actualMapJSON.mappings, expectedMapJSON.mappings);
+            assert.deepEqual(actualMapJSON.sources, expectedMapJSON.sources);
+            assert.deepEqual(actualMapJSON.names, expectedMapJSON.names);
+            assert.equal(actualMapJSON.file, expectedMapJSON.file);
+            done();
+          });
         });
       });
     });
@@ -182,17 +219,18 @@ describe('sourcemap', function() {
     it('(--sourcemap inline) has a sourceMappingURL in the CSS', function(done) {
       var result = spawn('node', [cli, '--sourcemap', 'inline', inputPath, outputPath]);
 
-      result.stdout.setEncoding('utf8');
-      result.stdout.once('data', function(data) {
-        assert.notEqual(data.indexOf('/*# sourceMappingURL='), -1);
-        done();
+      result.once('close', function() {
+        fs.readFile(outputPath, 'utf8', function(err, data) {
+          assert.notEqual(data.indexOf('/*# sourceMappingURL='), -1);
+          done();
+        });
       });
     });
   });
 
   describe('none', function() {
     var expectedCSSPath = path.join(__dirname, 'sourcemap', 'none', 'expected.css')
-      , inputPath = path.join(__dirname, 'sourcemap', 'none', 'input.scss')
+      , inputPath = path.join(__dirname, 'sourcemap', 'tmp', 'input.scss')
       , expectedCSS;
 
     before(function(done) {
@@ -208,20 +246,22 @@ describe('sourcemap', function() {
     it('(--sourcemap none) has no .map', function(done) {
       var result = spawn('node', [cli, '--sourcemap', 'none', inputPath, outputPath]);
 
-      result.stdout.setEncoding('utf8');
-      result.stdout.once('data', function(data) {
-        assert.equal(data, expectedCSS);
-        done();
+      result.once('close', function() {
+        fs.readFile(outputPath, 'utf8', function(err, data) {
+          assert.equal(data, expectedCSS);
+          done();
+        });
       });
     });
 
     it('(--sourcemap none) has no sourceMappingURL in the CSS', function(done) {
       var result = spawn('node', [cli, '--sourcemap', 'none', inputPath, outputPath]);
 
-      result.stdout.setEncoding('utf8');
-      result.stdout.once('data', function(data) {
-        assert.equal(data.indexOf('/*# sourceMappingURL='), -1);
-        done();
+      result.once('close', function() {
+        fs.readFile(outputPath, 'utf8', function(err, data) {
+          assert.equal(data.indexOf('/*# sourceMappingURL='), -1);
+          done();
+        });
       });
     });
   });
